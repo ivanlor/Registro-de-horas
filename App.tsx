@@ -5,12 +5,13 @@ import { TimeRecordForm } from './components/TimeRecordForm';
 import { RecentRecordsTable } from './components/RecentRecordsTable';
 import { LogoIcon } from './components/icons';
 
-// La URL de la Web App se define aquí como una constante.
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHT_Nmg3HKyzbKN18fl_dWBMMGnWcikrk10xP6rTbZnl7BFuGqO_srByO3rO50Vzhf/exec';
+// URL del script de Google.
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbygt8_3nGfCvNh4jH_89GmbEZ-ObwdB8V1V1dDm5NQWg2dAULlXUc_oyNe2bi3ukk0y/exec';
 
 export default function App() {
   const [records, setRecords] = useLocalStorage<TimeRecord[]>('timeRecords', []);
   const [isLoading, setIsLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (newRecord: NewTimeRecord) => {
@@ -25,39 +26,70 @@ export default function App() {
     };
 
     try {
-      // El modo 'no-cors' es a menudo necesario para las aplicaciones web de Google Apps Script
-      // para evitar errores de CORS preflight. La respuesta será opaca.
+      const registrationDate = new Date(recordWithId.timestamp);
+      const formattedRegistrationDate = `${registrationDate.getDate()}-${registrationDate.getMonth() + 1}-${registrationDate.getFullYear()} ${String(registrationDate.getHours()).padStart(2, '0')}:${String(registrationDate.getMinutes()).padStart(2, '0')}`;
+
+      const payload = {
+        "action": "add",
+        "ID": recordWithId.id, // Se añade el ID único al payload
+        "F. Inicio": recordWithId.startDate,
+        "F. Fin": recordWithId.endDate,
+        "H. Inicio": recordWithId.startTime,
+        "H. Fin": recordWithId.endTime,
+        "Actuación": recordWithId.description,
+        "Horas": recordWithId.calculatedHours,
+        "Nombre": recordWithId.name,
+        "Observaciones": recordWithId.observations || '',
+        "F. Registro": formattedRegistrationDate,
+      };
+      
       await fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
-        redirect: 'follow',
         headers: {
           'Content-Type': 'text/plain;charset=utf-8',
         },
-        body: JSON.stringify({
-            // Columnas de Google Sheet
-            'F. Inicio': recordWithId.startDate,
-            'F. Fin': recordWithId.endDate,
-            'H. Inicio': recordWithId.startTime,
-            'H. Fin': recordWithId.endTime,
-            'Actuación': recordWithId.description,
-            'Horas': recordWithId.calculatedHours,
-            'Nombre': recordWithId.name,
-            'F. Registro': recordWithId.timestamp,
-        })
+        body: JSON.stringify(payload),
       });
 
-      // Con 'no-cors', no podemos inspeccionar la respuesta.
-      // Asumimos que tuvo éxito si fetch() no lanza un error.
       setRecords(prev => [{ ...recordWithId, status: 'success' }, ...prev]);
       
     } catch (err) {
       console.error('Failed to send data:', err);
       const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(`Fallo al enviar los datos. Revisa la consola y la publicación de tu Apps Script. (${errorMessage})`);
-      // Para esta implementación, solo guardaremos los envíos exitosos.
+      setError(`Error al enviar el registro. Por favor, inténtalo de nuevo. (${errorMessage})`);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (recordId: string) => {
+    setDeletingId(recordId);
+    setError(null);
+
+    try {
+      // El payload para eliminar ahora es mucho más simple y fiable.
+      // Solo necesita la acción y el ID único del registro a eliminar.
+      const deletePayload = {
+        action: 'delete',
+        id: recordId,
+      };
+
+      await fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(deletePayload),
+      });
+
+      // Si la petición no falla, eliminamos el registro del estado local.
+      setRecords(prev => prev.filter(r => r.id !== recordId));
+    } catch (err) {
+      console.error('Failed to delete data:', err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      setError(`Error al eliminar el registro. Por favor, inténtalo de nuevo. (${errorMessage})`);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -81,7 +113,7 @@ export default function App() {
 
         <TimeRecordForm onSubmit={handleSubmit} isLoading={isLoading} />
         
-        <RecentRecordsTable records={records} />
+        <RecentRecordsTable records={records} onDelete={handleDelete} deletingId={deletingId} />
 
       </div>
     </div>

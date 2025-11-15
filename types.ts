@@ -6,6 +6,7 @@ export interface TimeRecord {
   endTime: string;
   name: string;
   description: string;
+  observations?: string;
   calculatedHours: number;
   status: 'success' | 'error' | 'pending';
   timestamp: string;
