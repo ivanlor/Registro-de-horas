@@ -34,7 +34,7 @@ export default function App() {
     try {
       const response = await addRecordToSheet(recordWithId);
       
-      if (response.result !== 'success') {
+      if (response.result.toLowerCase() !== 'success') {
         throw new Error(response.message || 'Error desconocido desde Google Scripts.');
       }
 
@@ -61,7 +61,7 @@ export default function App() {
     try {
       const response = await deleteRecordFromSheet(recordId);
 
-      if (response.result !== 'success') {
+      if (response.result.toLowerCase() !== 'success') {
         throw new Error(response.message || 'Error desconocido desde Google Scripts.');
       }
 

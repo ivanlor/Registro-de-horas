@@ -13,10 +13,11 @@ const postToScript = async (payload: object): Promise<ScriptResponse> => {
   const response = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      // Se usa 'text/plain' para evitar una solicitud de "preflight" de CORS (OPTIONS).
+      // Google Apps Script maneja esto correctamente si el cuerpo es una cadena JSON.
+      'Content-Type': 'text/plain;charset=utf-8',
     },
     body: JSON.stringify(payload),
-    // NO 'no-cors' mode
   });
 
   if (!response.ok) {
@@ -64,7 +65,7 @@ export const deleteRecordFromSheet = (recordId: string): Promise<ScriptResponse>
   const payload = {
     action: 'delete',
     data: {
-      id: recordId,
+      "ID": recordId,
     }
   };
   return postToScript(payload);

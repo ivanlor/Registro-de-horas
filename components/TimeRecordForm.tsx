@@ -35,30 +35,11 @@ export const TimeRecordForm: React.FC<TimeRecordFormProps> = ({ onSubmit, isLoad
     const [observations, setObservations] = useState('');
     const [calculatedHours, setCalculatedHours] = useState('');
 
+    // Refs for date and time inputs
     const startDateRef = useRef<HTMLInputElement>(null);
     const endDateRef = useRef<HTMLInputElement>(null);
     const startTimeRef = useRef<HTMLInputElement>(null);
     const endTimeRef = useRef<HTMLInputElement>(null);
-
-    const handleIconClick = (ref: React.RefObject<HTMLInputElement>) => {
-        const input = ref.current;
-        if (input) {
-            try {
-                // Prioriza showPicker si existe y es una función.
-                if ('showPicker' in input && typeof (input as any).showPicker === 'function') {
-                    (input as any).showPicker();
-                } else {
-                    // Fallback para navegadores que no soportan showPicker.
-                    input.focus();
-                }
-            } catch (error) {
-                // Si showPicker() es bloqueado o falla, puede lanzar un error.
-                // Se recurre a focus() para asegurar que algo suceda.
-                console.warn('showPicker() falló, se usará focus() como alternativa. Error:', error);
-                input.focus();
-            }
-        }
-    };
 
     const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newStartDate = e.target.value;
@@ -97,33 +78,33 @@ export const TimeRecordForm: React.FC<TimeRecordFormProps> = ({ onSubmit, isLoad
                     <InputField label="Fecha Inicio" htmlFor="startDate">
                         <div className="relative">
                            <input id="startDate" type="date" value={startDate} onChange={handleStartDateChange} className="w-full pl-3 pr-10 py-2 bg-white text-slate-900 border border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required ref={startDateRef} />
-                            <button type="button" onClick={() => handleIconClick(startDateRef)} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label="Seleccionar fecha de inicio">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => startDateRef.current?.focus()} aria-hidden="true">
                                <CalendarIcon className="h-5 w-5 text-gray-500" />
-                            </button>
+                            </div>
                         </div>
                     </InputField>
                     <InputField label="Fecha Fin" htmlFor="endDate">
                          <div className="relative">
                             <input id="endDate" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} min={startDate} className="w-full pl-3 pr-10 py-2 bg-white text-slate-900 border border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required ref={endDateRef} />
-                             <button type="button" onClick={() => handleIconClick(endDateRef)} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label="Seleccionar fecha de fin">
+                             <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => endDateRef.current?.focus()} aria-hidden="true">
                               <CalendarIcon className="h-5 w-5 text-gray-500" />
-                            </button>
+                            </div>
                         </div>
                     </InputField>
                     <InputField label="Hora Inicio" htmlFor="startTime">
                          <div className="relative">
                             <input id="startTime" type="time" value={startTime} onChange={e => setStartTime(e.target.value)} className="w-full pl-3 pr-10 py-2 bg-white text-slate-900 border border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required ref={startTimeRef} />
-                             <button type="button" onClick={() => handleIconClick(startTimeRef)} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label="Seleccionar hora de inicio">
+                             <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => startTimeRef.current?.focus()} aria-hidden="true">
                               <ClockIcon className="h-5 w-5 text-gray-500" />
-                            </button>
+                            </div>
                         </div>
                     </InputField>
                     <InputField label="Hora Fin" htmlFor="endTime">
                          <div className="relative">
                             <input id="endTime" type="time" value={endTime} onChange={e => setEndTime(e.target.value)} min={startDate === endDate ? startTime : undefined} className="w-full pl-3 pr-10 py-2 bg-white text-slate-900 border border-slate-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required ref={endTimeRef} />
-                            <button type="button" onClick={() => handleIconClick(endTimeRef)} className="absolute inset-y-0 right-0 flex items-center pr-3" aria-label="Seleccionar hora de fin">
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer" onClick={() => endTimeRef.current?.focus()} aria-hidden="true">
                               <ClockIcon className="h-5 w-5 text-gray-500" />
-                            </button>
+                            </div>
                         </div>
                     </InputField>
                 </div>
